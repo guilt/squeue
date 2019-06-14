@@ -66,10 +66,16 @@ class SqliteQueue(ObjectQueue):
     )
 
     def __init__(self, path):
+        self.created = False
         self.path = os.path.abspath(path)
         self._connection_cache = {}
-        with self.__get_conn() as conn:
-            conn.execute(self._create)
+
+    def __create(self):
+        if not self.created:
+            if not os.path.exists(self.path):
+                with self.__get_conn() as conn:
+                    conn.execute(self._create)
+            self.created = True
 
     def __get_conn(self):
         id_item = get_ident()
@@ -79,18 +85,21 @@ class SqliteQueue(ObjectQueue):
         return self._connection_cache[id_item]
 
     def __len__(self):
+        self.__create()
         with self.__get_conn() as conn:
             for length in conn.execute(self._count):
                 return length
         return 0
 
     def __iter__(self):
+        self.__create()
         with self.__get_conn() as conn:
             for _, obj_buffer in conn.execute(self._iterate):
                 yield loads(bytes(obj_buffer))
 
     def enqueue(self, obj, **kwargs):
         obj_buffer = buffer(dumps(obj, 2))
+        self.__create()
         with self.__get_conn() as conn:
             conn.execute(self._append, (obj_buffer,))
 
@@ -99,6 +108,7 @@ class SqliteQueue(ObjectQueue):
         wait = 0.1
         max_wait = 2
         tries = 0
+        self.__create()
         with self.__get_conn() as conn:
             id_item = None
             while True:
@@ -114,9 +124,9 @@ class SqliteQueue(ObjectQueue):
                     tries += 1
                     try:
                         sleep(wait)
-                    except Exception as _:
+                        wait = min(max_wait, tries/10 + wait)
+                    except Exception:
                         return None
-                    wait = min(max_wait, tries/10 + wait)
                 except Exception:
                     return None
             if id_item:
@@ -125,6 +135,7 @@ class SqliteQueue(ObjectQueue):
         return None
 
     def peek(self):
+        self.__create()
         with self.__get_conn() as conn:
             cursor = conn.execute(self._peek)
             try:

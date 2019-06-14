@@ -4,13 +4,15 @@ squeue: A simple SQLite Queue
 from uuid import uuid1
 from .squeue import SqliteQueue, loads, dumps
 
-__JOB_QUEUE = SqliteQueue('jobs.sqlite')
+__JOB_QUEUE_FILE = 'jobs.sqlite'
+__JOB_QUEUE = SqliteQueue(__JOB_QUEUE_FILE)
+__JOB_QUEUE_KEY_FORMAT = 'job:result:%s'
 
 def queue_function(func, queue=__JOB_QUEUE):
     "Queue a function for future processing."
     def delay(*args, **kwargs):
         "Enqueue function Queue and return queueId."
-        key = 'job:result:%s' % str(uuid1())
+        key = __JOB_QUEUE_KEY_FORMAT % str(uuid1())
         value = dumps((func, key, args, kwargs))
         queue.enqueue(value)
         return key

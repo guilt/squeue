@@ -18,7 +18,7 @@ Usage
 =====
 
 One can create a new queuable function (or unit of work) by using the
-@queuefunc decorator.
+@queue_function decorator.
 
 .. code-block:: python
 
