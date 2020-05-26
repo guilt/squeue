@@ -3,7 +3,7 @@ squeue: A simple SQLite Queue
 """
 from setuptools import setup, find_packages
 
-VERSION = '1.1'
+VERSION = '1.2'
 
 setup(name='squeue',
       version=VERSION,
@@ -13,7 +13,7 @@ setup(name='squeue',
       keywords='sqlite queue job workflow',
       author='Karthik Kumar Viswanathan',
       author_email='karthikkumar@gmail.com',
-      url='http://karthikkumar.org',
+      url='https://github.com/guilt/squeue',
       license='BSD',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       include_package_data=True,
